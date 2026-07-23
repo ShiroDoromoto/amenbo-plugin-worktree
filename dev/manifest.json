@@ -1,0 +1,16 @@
+{
+  "name": "worktree",
+  "desc": "Isolate each task in its own git worktree",
+  "author": "amenbo",
+  "repo": "ShiroDoromoto/amenbo-plugin-worktree",
+  "os": ["macos", "linux"],
+  "category": "workflow",
+  "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v1/worktree-v1.tar.gz",
+  "checksum": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "scope": "project",
+  "payload_v": 1,
+  "config": [
+    { "key": "base", "label": "Base branch", "secret": false, "required": false }
+  ],
+  "events": ["task.status_changed"]
+}
