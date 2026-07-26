@@ -126,9 +126,18 @@ amenbo plugin enable worktree
 ```
 
 That lays the binary down beside [`dev/manifest.json`](dev/manifest.json), a stand-in for
-the entry the catalog holds — its `url` and `checksum` are placeholders, because a local
-build was never fetched or verified. The real install route resolves the catalog entry
-and checks the asset's provenance before anything lands on disk.
+the entry the catalog holds: it carries the same fields, released assets and digests, so
+the two can be read against each other — but nothing about a hand-install is verified.
+The real install route resolves the catalog entry and checks the asset's provenance
+before anything lands on disk.
+
+To cut a release, `make dist` builds the assets the catalog entry points at — one
+universal build for every Mac, one per architecture on Linux — and prints their digests:
+
+```sh
+make dist                                    # → dist/worktree-v1-*.tar.gz + sha256 digests
+gh release create v1 dist/*.tar.gz           # publish them
+```
 
 ## Requirements
 
