@@ -19,7 +19,6 @@
       "checksum": "sha256:a3b1ae53a6650e05673783d9d9e686b03c31582d488639a5af667f87e90988a5"
     }
   },
-  "scope": "project",
   "payload_v": 1,
   "config": [
     { "key": "base", "label": "Base branch", "secret": false, "required": false }
