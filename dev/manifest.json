@@ -3,20 +3,24 @@
   "desc": "Isolate each task in its own git worktree",
   "author": "amenbo",
   "repo": "ShiroDoromoto/amenbo-plugin-worktree",
-  "os": ["macos", "linux"],
+  "os": ["macos", "linux", "windows"],
   "category": "workflow",
   "assets": {
     "macos": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v1/worktree-v1-macos-universal.tar.gz",
-      "checksum": "sha256:a6c1027eb54606d4f5e67176faeefefff3b64161b03fd76faff5908e093bf07c"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v2/worktree-v2-macos-universal.tar.gz",
+      "checksum": "sha256:27da2bdb8fb1814a7a1bc0596077c5505538e7fb147483234368033544b0b6bf"
     },
     "linux-x64": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v1/worktree-v1-linux-x64.tar.gz",
-      "checksum": "sha256:f74ec13fc4341dba8bb64071651f86fb374bb932e0f15a8799bed8de014c06ac"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v2/worktree-v2-linux-x64.tar.gz",
+      "checksum": "sha256:feaa34e47239ce679f03b0dc6f895233d5b94dcf804d7fa20bc6317b8eb969d4"
     },
     "linux-arm64": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v1/worktree-v1-linux-arm64.tar.gz",
-      "checksum": "sha256:a3b1ae53a6650e05673783d9d9e686b03c31582d488639a5af667f87e90988a5"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v2/worktree-v2-linux-arm64.tar.gz",
+      "checksum": "sha256:00a4cd18236be7579797814ee165d3d9c68e0f4672d8c1601dd18ede0d09230f"
+    },
+    "windows-x64": {
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v2/worktree-v2-windows-x64.tar.gz",
+      "checksum": "sha256:481ffde7e10d6be995562c479f1418b2432c27c7bc581f49be8249cf5ab7c291"
     }
   },
   "payload_v": 1,
