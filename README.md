@@ -152,7 +152,7 @@ uploads them, and prints their digests in the run summary for the entry to quote
 is the same build, to check one before tagging it:
 
 ```sh
-make dist      # → dist/worktree-v1-*.tar.gz + sha256 digests
+make dist      # → dist/worktree-<version>-*.tar.gz + sha256 digests
 ```
 
 That run is on a Mac for `lipo` alone, which folds the two Mac architectures into the universal

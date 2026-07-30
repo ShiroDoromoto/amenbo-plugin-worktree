@@ -1,5 +1,5 @@
 BIN := worktree
-VERSION := v1
+VERSION := v2
 # One asset per platform key the catalog entry publishes: macOS is one universal build for
 # every Mac (the entry's `macos` key), Linux and Windows one build per architecture. This
 # list is what a release bakes — the release workflow runs `dist` rather than enumerating
