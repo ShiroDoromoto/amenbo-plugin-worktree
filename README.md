@@ -34,6 +34,14 @@ eval "$(amenbo plugin run worktree start 123)"
 amenbo plugin run worktree finish 123
 ```
 
+`start` returns one `cd` line and amenbo passes it through untouched, so the shell you
+are standing in is the one that runs it. The line itself is the same in either dialect;
+only the way to feed it differs:
+
+```powershell
+iex (amenbo plugin run worktree start 123)
+```
+
 | | |
 |---|---|
 | `start <id> [--base <branch>]` | Add a worktree for the task on a fresh branch `task/<id>`, and return the `cd` into it. |
@@ -91,7 +99,11 @@ rests on keeping them apart:
 
 - **stdout is the machine return value.** amenbo relays it to the caller verbatim, which
   is why `start` prints one `cd` line and why `eval "$(…)"` works at all. A summary
-  leaking into stdout would be evaluated as a shell command.
+  leaking into stdout would be evaluated as a shell command. Nothing downstream knows
+  which shell will read the line, so it is written in the form both dialects agree on —
+  a single-quoted path, which is literal to each of them. The one path that has no such
+  form is one carrying a single quote, and `start` refuses it rather than return a line
+  that works on the machine it was baked for and breaks on the other.
 - **stderr is for humans.** Summaries, refusals, context.
 - **the exit code is the verdict.** Non-zero means the return value is broken; amenbo
   discards it and reports a failed call.
@@ -135,9 +147,9 @@ before anything lands on disk.
 
 The distributables are baked in CI, not on a machine: pushing a `v*` tag runs
 [`release.yml`](.github/workflows/release.yml), which bakes every asset key the catalog entry
-publishes — one universal build for every Mac, one per architecture on Linux — uploads them,
-and prints their digests in the run summary for the entry to quote. `make dist` is the same
-build, to check one before tagging it:
+publishes — one universal build for every Mac, one per architecture on Linux and Windows —
+uploads them, and prints their digests in the run summary for the entry to quote. `make dist`
+is the same build, to check one before tagging it:
 
 ```sh
 make dist      # → dist/worktree-v1-*.tar.gz + sha256 digests
@@ -151,7 +163,7 @@ is the catalog's, made on merge.
 ## Requirements
 
 - git 2.31 or newer (`git rev-parse --path-format`)
-- macOS or Linux
+- macOS, Linux or Windows
 
 ## License
 

@@ -28,7 +28,11 @@ func TestStartReturnsOnlyTheCdAndKeepsTheSummaryOnStderr(t *testing.T) {
 
 	worktree := startOK(t, "123")
 
-	if got, want := stdout.String(), "cd "+shellQuote(worktree)+"\n"; got != want {
+	cd, err := shellQuote(worktree)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := stdout.String(), "cd "+cd+"\n"; got != want {
 		t.Fatalf("stdout = %q, want %q", got, want)
 	}
 	if !strings.Contains(stderr.String(), "task/123") {
@@ -250,8 +254,30 @@ func TestPathsRefuseOutsideAGitRepository(t *testing.T) {
 	}
 }
 
+// The quoted line has to be read the same way by a POSIX shell and by PowerShell, so the
+// quoting stays inside what both read literally: a space or a backslash is carried through
+// untouched, and no escape is spelled that only one of them understands.
 func TestShellQuoteSurvivesAnAwkwardPath(t *testing.T) {
-	if got, want := shellQuote("/tmp/it's here"), `'/tmp/it'\''s here'`; got != want {
-		t.Fatalf("shellQuote = %s, want %s", got, want)
+	for _, tc := range []struct{ in, want string }{
+		{`/tmp/a b/wt`, `'/tmp/a b/wt'`},
+		{`C:\Users\a b\repo-worktrees\123`, `'C:\Users\a b\repo-worktrees\123'`},
+		{`/tmp/$HOME/wt`, `'/tmp/$HOME/wt'`},
+	} {
+		got, err := shellQuote(tc.in)
+		if err != nil {
+			t.Fatalf("shellQuote(%s) = %v", tc.in, err)
+		}
+		if got != tc.want {
+			t.Errorf("shellQuote(%s) = %s, want %s", tc.in, got, tc.want)
+		}
+	}
+}
+
+// A single quote in the path is the one case the two dialects cannot be served by one line —
+// POSIX closes and re-opens the string, PowerShell doubles the quote — so start refuses it
+// instead of returning a line that works where it was baked and breaks elsewhere.
+func TestShellQuoteRefusesAPathItCannotWriteForBothShells(t *testing.T) {
+	if _, err := shellQuote("/tmp/it's here"); err == nil {
+		t.Fatal("want a refusal")
 	}
 }

@@ -1,11 +1,11 @@
 BIN := worktree
 VERSION := v1
 # One asset per platform key the catalog entry publishes: macOS is one universal build for
-# every Mac (the entry's `macos` key), Linux is one build per architecture. This list is what
-# a release bakes — the release workflow runs `dist` rather than enumerating platforms of its
-# own, so the keys published and the keys built here cannot drift apart, and a platform is
-# added in one place.
-PLATFORMS := macos-universal linux-x64 linux-arm64
+# every Mac (the entry's `macos` key), Linux and Windows one build per architecture. This
+# list is what a release bakes — the release workflow runs `dist` rather than enumerating
+# platforms of its own, so the keys published and the keys built here cannot drift apart,
+# and a platform is added in one place.
+PLATFORMS := macos-universal linux-x64 linux-arm64 windows-x64
 
 .PHONY: build test install dist clean
 
@@ -36,11 +36,13 @@ endif
 	@echo "installed into $(AMENBO_BASE)/plugins/$(BIN) — enable it with: amenbo plugin enable $(BIN)"
 
 # The release build: the tarballs a release carries and the digests the catalog entry
-# quotes. Run it, upload dist/*.tar.gz to the release, and copy the printed digests into
-# the entry — a wrong one fails the install, since the digest is what install verifies.
+# quotes. The release workflow runs this and uploads what it baked, so what CI publishes is
+# what this prints; run it by hand to check a release before tagging one. The digests go
+# into the entry from that run's summary — a wrong one fails the install, since the digest
+# is what install verifies.
 #
-# **The entry inside each tarball is the plugin's name**, flat: that is the file install
-# lays down, and it is looked for by name.
+# **The entry inside each tarball is the plugin's name**, flat — `<name>.exe` on Windows:
+# that is the file install lays down, and it is looked for by name.
 dist: test
 	rm -rf dist && mkdir -p dist/build
 	GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o dist/build/$(BIN)-darwin-arm64 .
@@ -48,9 +50,12 @@ dist: test
 	lipo -create -output dist/build/$(BIN)-macos-universal dist/build/$(BIN)-darwin-arm64 dist/build/$(BIN)-darwin-amd64
 	GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o dist/build/$(BIN)-linux-x64 .
 	GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o dist/build/$(BIN)-linux-arm64 .
-	@for p in $(PLATFORMS); do \
-		mkdir -p dist/stage/$$p && cp dist/build/$(BIN)-$$p dist/stage/$$p/$(BIN) && chmod +x dist/stage/$$p/$(BIN); \
-		tar -czf dist/$(BIN)-$(VERSION)-$$p.tar.gz -C dist/stage/$$p $(BIN); \
+	GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o dist/build/$(BIN)-windows-x64 .
+	@set -e; for p in $(PLATFORMS); do \
+		entry=$(BIN); \
+		case $$p in windows-*) entry=$(BIN).exe;; esac; \
+		mkdir -p dist/stage/$$p && cp dist/build/$(BIN)-$$p dist/stage/$$p/$$entry && chmod +x dist/stage/$$p/$$entry; \
+		tar -czf dist/$(BIN)-$(VERSION)-$$p.tar.gz -C dist/stage/$$p $$entry; \
 	done
 	@echo; echo "assets for the catalog entry (checksum: sha256:<digest>):"; cd dist && shasum -a 256 *.tar.gz
 

@@ -229,6 +229,7 @@ func usage() {
 
 Usage (through amenbo, from the repository the task belongs to):
   eval "$(amenbo plugin run worktree start <id> [--base <branch>])"
+  iex (amenbo plugin run worktree start <id> [--base <branch>])      # PowerShell
   amenbo plugin run worktree finish <id> [--base <branch>] [--force]
 
 start   add a worktree for task <id> on a fresh branch task/<id>, in a sibling dir

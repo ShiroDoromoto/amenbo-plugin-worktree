@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"strconv"
 )
 
@@ -38,5 +39,12 @@ func hook(in input) {
 		}
 		logf("worktree: task %s is in_progress here, and this is a git repository.", id)
 		logf(`  If it wants a checkout of its own:  eval "$(amenbo plugin run worktree start %s)"`, id)
+		// The returned line is the same in either dialect; only the way to feed it to the
+		// shell differs. On Windows either shell is plausible — PowerShell is the default
+		// one, git-bash is what plenty of git users are standing in — so both are named
+		// there. Elsewhere nobody is in PowerShell, and the second line would be noise.
+		if runtime.GOOS == "windows" {
+			logf(`                      in PowerShell:  iex (amenbo plugin run worktree start %s)`, id)
+		}
 	}
 }

@@ -30,11 +30,18 @@ func paths(id string) (root, base, worktree string, err error) {
 // start gives task id a worktree of its own and returns the way into it.
 //
 // The return value on stdout is one `cd` line, so the caller enters the checkout with
-// `eval "$(amenbo plugin run worktree start <id>)"`; everything a human reads goes to
+// `eval "$(amenbo plugin run worktree start <id>)"` — `iex (amenbo plugin run worktree
+// start <id>)` in PowerShell, the same line either way; everything a human reads goes to
 // stderr beside it. The backlog is not touched: amenbo already moved the task to
 // in_progress — that reservation is what fired the hook that suggested this command.
 func start(id, base string) error {
 	root, worktreeBase, worktree, err := paths(id)
+	if err != nil {
+		return err
+	}
+	// Settled before anything is created: the way in is the whole return value, and a
+	// checkout on disk that no returned line can enter is worse than a refusal.
+	cd, err := shellQuote(worktree)
 	if err != nil {
 		return err
 	}
@@ -54,7 +61,7 @@ func start(id, base string) error {
 	logf("✓ task %s has a worktree: %s  (branch %s, cut from %s)", id, worktree, branchName(id), base)
 	logf("  code, build and test there — it is a development environment, not a bound folder")
 	logf("  backlog moves (comment / done) stay with amenbo, run from %s", root)
-	fmt.Fprintf(out, "cd %s\n", shellQuote(worktree))
+	fmt.Fprintf(out, "cd %s\n", cd)
 	return nil
 }
 
@@ -121,7 +128,19 @@ func finish(id, base string, force bool) error {
 	return nil
 }
 
-// shellQuote single-quotes a path so the returned `cd` line survives an eval.
-func shellQuote(s string) string {
-	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+// shellQuote single-quotes a path so the returned `cd` line survives being fed to a shell —
+// `eval "$(…)"` in a POSIX one, `iex (…)` in PowerShell. One line has to satisfy both, since
+// what a plugin returns is passed through untouched and nobody downstream knows the dialect.
+//
+// Single quotes are the form the two share: everything between them is literal in both, which
+// is what carries a Windows path's backslashes through unharmed (double quotes would not —
+// POSIX reads a backslash as an escape). What they do not share is how to put a single quote
+// *inside*: POSIX ends the string and re-opens it, PowerShell doubles the quote, and neither
+// spelling is inert in the other. So a path carrying one has no line that works in both, and
+// this refuses rather than return one that works where it was baked and breaks elsewhere.
+func shellQuote(s string) (string, error) {
+	if strings.Contains(s, "'") {
+		return "", fmt.Errorf("the path %s contains a single quote, which cannot be quoted in a way both a POSIX shell and PowerShell read alike — move the repository somewhere without one, and the `cd` line works in either", s)
+	}
+	return "'" + s + "'", nil
 }
