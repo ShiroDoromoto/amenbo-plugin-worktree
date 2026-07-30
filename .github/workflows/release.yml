@@ -1,0 +1,55 @@
+name: Release
+
+# The distributables are baked here, not on an author's machine: one run bakes every asset key
+# the catalog entry publishes, so a platform cannot be left behind, and the digests the entry
+# quotes are copied from this run's output instead of transcribed by hand.
+#
+# The keys themselves live in the Makefile's PLATFORMS, and this workflow runs that one target —
+# so what a release publishes is what `make dist` bakes, and a platform is added once.
+#
+# **A release is not a distribution.** Nothing installs from these bytes until the catalog entry
+# points at them, and that entry is a reviewed pull request against the catalog repository. The
+# signature that blesses an asset is the catalog's, made on merge; nothing is signed here.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # A Mac, for `lipo` alone: the macOS asset is one universal build covering every Mac, and
+    # folding the two architectures into it is the only step in the bake that no other runner
+    # can do. The Go builds themselves all cross-compile.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          # The version go.mod asks for, so the gate `dist` runs first and the build it then
+          # bakes never run on two Gos.
+          go-version-file: go.mod
+
+      # `dist` runs the gate first, so a tag cannot publish what does not pass it.
+      - name: Bake every asset
+        run: make dist
+
+      - name: Publish the digests
+        run: |
+          {
+            echo '## Assets for the catalog entry'
+            echo
+            echo '```'
+            cd dist && shasum -a 256 *.tar.gz
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.tar.gz \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Assets for the catalog entry. Digests are in the run summary; a release becomes installable only once the catalog entry points at it."

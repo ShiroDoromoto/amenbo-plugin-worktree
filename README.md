@@ -131,13 +131,22 @@ the two can be read against each other — but nothing about a hand-install is v
 The real install route resolves the catalog entry and checks the asset's provenance
 before anything lands on disk.
 
-To cut a release, `make dist` builds the assets the catalog entry points at — one
-universal build for every Mac, one per architecture on Linux — and prints their digests:
+### Releases
+
+The distributables are baked in CI, not on a machine: pushing a `v*` tag runs
+[`release.yml`](.github/workflows/release.yml), which bakes every asset key the catalog entry
+publishes — one universal build for every Mac, one per architecture on Linux — uploads them,
+and prints their digests in the run summary for the entry to quote. `make dist` is the same
+build, to check one before tagging it:
 
 ```sh
-make dist                                    # → dist/worktree-v1-*.tar.gz + sha256 digests
-gh release create v1 dist/*.tar.gz           # publish them
+make dist      # → dist/worktree-v1-*.tar.gz + sha256 digests
 ```
+
+That run is on a Mac for `lipo` alone, which folds the two Mac architectures into the universal
+asset; the Go builds all cross-compile. **A release is not a distribution:** nothing installs
+from those bytes until the catalog entry points at them, and the signature that blesses an asset
+is the catalog's, made on merge.
 
 ## Requirements
 

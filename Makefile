@@ -1,8 +1,10 @@
 BIN := worktree
 VERSION := v1
 # One asset per platform key the catalog entry publishes: macOS is one universal build for
-# every Mac, Linux is one build per architecture. The names are the catalog's keys, so the
-# two cannot drift apart.
+# every Mac (the entry's `macos` key), Linux is one build per architecture. This list is what
+# a release bakes — the release workflow runs `dist` rather than enumerating platforms of its
+# own, so the keys published and the keys built here cannot drift apart, and a platform is
+# added in one place.
 PLATFORMS := macos-universal linux-x64 linux-arm64
 
 .PHONY: build test install dist clean
