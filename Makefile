@@ -1,5 +1,11 @@
 BIN := worktree
-VERSION := v2
+# The version the assets are named after. Every tarball carries it in its filename and the catalog
+# entry quotes those names, so it has to be the tag that is shipping them — a number kept by hand is
+# one nobody notices is a release behind until the entry points at a file that says v1 on a v2
+# release. So it is read rather than written: the release workflow passes the tag it was pushed
+# with, and anywhere else it is the tag standing on this commit. `dev` when there is none, since a
+# build off an untagged working copy is exactly that, and a name saying so is the honest one.
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo dev)
 # One asset per platform key the catalog entry publishes: macOS is one universal build for
 # every Mac (the entry's `macos` key), Linux and Windows one build per architecture. This
 # list is what a release bakes — the release workflow runs `dist` rather than enumerating

@@ -155,6 +155,9 @@ is the same build, to check one before tagging it:
 make dist      # → dist/worktree-<version>-*.tar.gz + sha256 digests
 ```
 
+The version in those names is the tag being released, so nothing has to be bumped by hand for a
+release to be named after itself; run off a commit no tag stands on, the build calls itself `dev`.
+
 That run is on a Mac for `lipo` alone, which folds the two Mac architectures into the universal
 asset; the Go builds all cross-compile. **A release is not a distribution:** nothing installs
 from those bytes until the catalog entry points at them, and the signature that blesses an asset
