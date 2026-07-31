@@ -71,18 +71,11 @@ type input struct {
 	// already say it.
 	New string `json:"new"`
 	// Config holds the plugin's own non-secret settings, as the user filled them in.
-	// Secrets never appear here: amenbo puts those in the environment instead.
+	// Secrets never appear here: amenbo puts those in the environment instead. This
+	// plugin declares none, so what arrives is empty — the field is here because the
+	// document always carries it, and a reference implementation should show the shape
+	// amenbo writes rather than only the part it happens to read.
 	Config map[string]any `json:"config"`
-}
-
-// setting reads one non-secret setting as text. A value that is not a string is not a
-// setting this plugin can act on, and is treated as unset rather than coerced.
-func (in input) setting(key string) string {
-	value, ok := in.Config[key].(string)
-	if !ok {
-		return ""
-	}
-	return strings.TrimSpace(value)
 }
 
 // readInput reads the document amenbo feeds on stdin.
@@ -109,18 +102,6 @@ func readInput(f *os.File) input {
 	return in
 }
 
-// baseBranch resolves which branch a worktree is cut from, most specific first: the
-// --base flag, then the `base` setting the manifest declares, then main.
-func baseBranch(flagValue string, in input) string {
-	if flagValue != "" {
-		return flagValue
-	}
-	if configured := in.setting("base"); configured != "" {
-		return configured
-	}
-	return "main"
-}
-
 func main() {
 	in := readInput(os.Stdin)
 	args := os.Args[1:]
@@ -135,15 +116,15 @@ func main() {
 	switch args[0] {
 	case "start":
 		fs := flag.NewFlagSet("start", flag.ExitOnError)
-		base := fs.String("base", "", "branch to cut the worktree from (default: the `base` setting, else main)")
+		base := fs.String("base", "", "branch to cut the worktree from (default: the branch the repository is on)")
 		id := readID(fs, "start", args[1:])
-		do(start(id, baseBranch(*base, in)))
+		do(start(id, *base))
 	case "finish":
 		fs := flag.NewFlagSet("finish", flag.ExitOnError)
-		base := fs.String("base", "", "branch the task's branch must be merged into")
+		base := fs.String("base", "", "branch the task's branch must be merged into (default: the branch the repository is on)")
 		force := fs.Bool("force", false, "tear down even if the worktree is dirty or the branch is unmerged")
 		id := readID(fs, "finish", args[1:])
-		do(finish(id, baseBranch(*base, in), *force))
+		do(finish(id, *base, *force))
 	case "help", "-h", "--help":
 		usage()
 	default:
@@ -237,8 +218,8 @@ start   add a worktree for task <id> on a fresh branch task/<id>, in a sibling d
 finish  tear that worktree and its branch down. Refused unless the worktree is clean
         and the branch is merged into <branch>; --force overrides both.
 
-Settings:
-  base    the branch a worktree is cut from when --base is not given (default: main)
+Without --base, both cut from and measure against the branch the repository is
+standing on. Name one with --base to take the work somewhere else.
 
 With no arguments the plugin is an observation hook: it reads the fired event on stdin
 and only writes a suggestion to stderr. It never creates or removes anything on its own.

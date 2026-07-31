@@ -45,6 +45,17 @@ func worktreeAdd(root, path, branch, base string) error {
 	return err
 }
 
+// headName is the branch the main repo is standing on. A detached HEAD has no branch to
+// name, so it answers with the word git itself resolves — which cuts and measures from
+// the same commit, and reads as what it is wherever it is printed.
+func headName(root string) string {
+	name, err := git(root, "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil || name == "" {
+		return "HEAD"
+	}
+	return name
+}
+
 // worktreeRemove detaches the worktree at path. force discards uncommitted changes.
 func worktreeRemove(root, path string, force bool) error {
 	args := []string{"worktree", "remove", path}

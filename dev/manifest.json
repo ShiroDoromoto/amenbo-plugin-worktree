@@ -24,9 +24,6 @@
     }
   },
   "payload_v": 1,
-  "config": [
-    { "key": "base", "label": "Base branch", "secret": false, "required": false }
-  ],
   "events": ["task.status_changed"],
   "agent": {
     "when": "Starting work on a task that will produce commits, and wanting it isolated",

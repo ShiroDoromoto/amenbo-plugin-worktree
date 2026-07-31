@@ -27,6 +27,20 @@ func paths(id string) (root, base, worktree string, err error) {
 	return root, base, filepath.Join(base, id), nil
 }
 
+// cutFrom resolves the branch a worktree is cut from, and measured against when it is
+// torn down: the one --base names, or the branch the repository is standing on.
+//
+// The branch you are on is the answer, so there is no setting to fill in and no question
+// to answer before the first `start` works. A name kept anywhere else has to be right on
+// every repository the plugin is used in, and a repository whose trunk is called
+// something else would meet `invalid reference` instead of a worktree.
+func cutFrom(root, flagValue string) string {
+	if flagValue != "" {
+		return flagValue
+	}
+	return headName(root)
+}
+
 // start gives task id a worktree of its own and returns the way into it.
 //
 // The return value on stdout is one `cd` line, so the caller enters the checkout with
@@ -54,11 +68,12 @@ func start(id, base string) error {
 	if err := os.MkdirAll(worktreeBase, 0o755); err != nil {
 		return err
 	}
-	if err := worktreeAdd(root, worktree, branchName(id), base); err != nil {
+	from := cutFrom(root, base)
+	if err := worktreeAdd(root, worktree, branchName(id), from); err != nil {
 		return fmt.Errorf("worktree add: %w", err)
 	}
 
-	logf("✓ task %s has a worktree: %s  (branch %s, cut from %s)", id, worktree, branchName(id), base)
+	logf("✓ task %s has a worktree: %s  (branch %s, cut from %s)", id, worktree, branchName(id), from)
 	logf("  code, build and test there — it is a development environment, not a bound folder")
 	logf("  backlog moves (comment / done) stay with amenbo, run from %s", root)
 	fmt.Fprintf(out, "cd %s\n", cd)
@@ -104,8 +119,9 @@ func finish(id, base string, force bool) error {
 		if !clean {
 			return fmt.Errorf("worktree %s has uncommitted changes — commit them, or use --force to discard them", worktree)
 		}
-		if !isMerged(root, branchName(id), base) {
-			return fmt.Errorf("branch %s has commits %s does not — merge it, or use --force to discard them", branchName(id), base)
+		into := cutFrom(root, base)
+		if !isMerged(root, branchName(id), into) {
+			return fmt.Errorf("branch %s has commits %s does not — merge it, or use --force to discard them", branchName(id), into)
 		}
 	}
 

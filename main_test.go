@@ -92,36 +92,10 @@ func TestCanonicalIDRefusesAnythingButTheNumber(t *testing.T) {
 	}
 }
 
-func TestBaseBranchPrefersTheFlagThenTheSettingThenMain(t *testing.T) {
-	configured := input{Config: map[string]any{"base": " develop "}}
-	if got := baseBranch("release", configured); got != "release" {
-		t.Errorf("the flag should win: got %q", got)
-	}
-	if got := baseBranch("", configured); got != "develop" {
-		t.Errorf("the setting should be used and trimmed: got %q", got)
-	}
-	if got := baseBranch("", input{}); got != "main" {
-		t.Errorf("with neither, main: got %q", got)
-	}
-}
-
-// amenbo does not judge what a setting means, so a value of another shape is simply not
-// a setting this plugin can act on — treated as unset rather than coerced into a branch
-// name nothing would match.
-func TestSettingIgnoresAValueThatIsNotText(t *testing.T) {
-	in := input{Config: map[string]any{"base": 7.0}}
-	if got := in.setting("base"); got != "" {
-		t.Fatalf("setting = %q — want it ignored", got)
-	}
-}
-
 func TestReadInputReadsTheDocumentAmenboFeeds(t *testing.T) {
-	in := readInput(stdinWith(t, `{"v":1,"event":"task.status_changed","id":123,"new":"in_progress","config":{"base":"dev"}}`))
+	in := readInput(stdinWith(t, `{"v":1,"event":"task.status_changed","id":123,"new":"in_progress","config":{}}`))
 	if in.V != 1 || in.Event != eventStatusChanged || in.ID != 123 || in.New != statusInProgress {
 		t.Fatalf("readInput = %+v", in)
-	}
-	if got := in.setting("base"); got != "dev" {
-		t.Fatalf("setting base = %q", got)
 	}
 }
 

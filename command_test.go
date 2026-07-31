@@ -10,7 +10,7 @@ import (
 // startOK runs start and fails the test if it refuses, returning the worktree path.
 func startOK(t *testing.T, id string) string {
 	t.Helper()
-	if err := start(id, "main"); err != nil {
+	if err := start(id, ""); err != nil {
 		t.Fatalf("start %s: %v", id, err)
 	}
 	_, _, worktree, err := paths(id)
@@ -62,7 +62,7 @@ func TestStartRefusesAWorktreeThatIsAlreadyThere(t *testing.T) {
 	capture(t)
 	startOK(t, "123")
 
-	err := start("123", "main")
+	err := start("123", "")
 	if err == nil {
 		t.Fatal("the second start should refuse")
 	}
@@ -81,7 +81,7 @@ func TestStartRefusesWhenTheBranchSurvivedTheWorktree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := start("123", "main")
+	err := start("123", "")
 	if err == nil || !strings.Contains(err.Error(), "task/123") {
 		t.Fatalf("start = %v — want a refusal naming the branch", err)
 	}
@@ -101,7 +101,52 @@ func TestStartCutsTheBranchFromTheGivenBase(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 	if !isMerged(root, "task/123", "release") {
-		t.Error("the branch should sit on release, not on main")
+		t.Error("the branch should sit on release, not on the branch the repo is on")
+	}
+}
+
+// Nothing is filled in first, and no name is assumed: what a worktree is cut from is the
+// branch the repository is standing on, whatever it is called. A trunk named anything but
+// `main` is exactly the repository a fixed default turns away.
+func TestStartCutsFromWhateverBranchTheRepositoryIsOn(t *testing.T) {
+	root := setupRepo(t)
+	capture(t)
+	if _, err := git(root, "branch", "-m", "trunk"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := git(root, "commit", "--allow-empty", "-m", "on trunk"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := start("123", ""); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+	if !isMerged(root, "task/123", "trunk") {
+		t.Error("the branch should sit on trunk, the branch the repository was on")
+	}
+}
+
+// The teardown measures against the same answer, so a repository that never says `main`
+// is not told its work is unmerged by a branch it does not have.
+func TestFinishMeasuresAgainstTheBranchTheRepositoryIsOn(t *testing.T) {
+	root := setupRepo(t)
+	capture(t)
+	if _, err := git(root, "branch", "-m", "trunk"); err != nil {
+		t.Fatal(err)
+	}
+	worktree := startOK(t, "123")
+	if _, err := git(worktree, "commit", "--allow-empty", "-m", "work"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := finish("123", "", false); err == nil {
+		t.Fatal("finish should refuse a branch trunk does not hold")
+	}
+	if _, err := git(root, "merge", "task/123"); err != nil {
+		t.Fatal(err)
+	}
+	if err := finish("123", "", false); err != nil {
+		t.Fatalf("finish after the merge: %v", err)
 	}
 }
 
@@ -114,7 +159,7 @@ func TestFinishRemovesTheWorktreeTheBranchAndTheEmptiedDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := finish("123", "main", false); err != nil {
+	if err := finish("123", "", false); err != nil {
 		t.Fatalf("finish: %v", err)
 	}
 	if _, err := os.Stat(worktree); !os.IsNotExist(err) {
@@ -140,7 +185,7 @@ func TestFinishKeepsTheDirWhileAnotherTaskLivesThere(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := finish("123", "main", false); err != nil {
+	if err := finish("123", "", false); err != nil {
 		t.Fatalf("finish: %v", err)
 	}
 	if _, err := os.Stat(other); err != nil {
@@ -159,7 +204,7 @@ func TestFinishRefusesADirtyWorktree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := finish("123", "main", false)
+	err := finish("123", "", false)
 	if err == nil || !strings.Contains(err.Error(), "uncommitted") {
 		t.Fatalf("finish = %v — want a refusal naming the uncommitted work", err)
 	}
@@ -176,7 +221,7 @@ func TestFinishRefusesABranchThatIsNotMergedYet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := finish("123", "main", false)
+	err := finish("123", "", false)
 	if err == nil || !strings.Contains(err.Error(), "task/123") {
 		t.Fatalf("finish = %v — want a refusal naming the branch", err)
 	}
@@ -194,7 +239,7 @@ func TestFinishForceTearsDownDirtyAndUnmerged(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := finish("123", "main", true); err != nil {
+	if err := finish("123", "", true); err != nil {
 		t.Fatalf("finish --force: %v", err)
 	}
 	if _, err := os.Stat(worktree); !os.IsNotExist(err) {
@@ -208,7 +253,7 @@ func TestFinishForceTearsDownDirtyAndUnmerged(t *testing.T) {
 func TestFinishSaysSoWhenThereIsNoWorktree(t *testing.T) {
 	setupRepo(t)
 	capture(t)
-	if err := finish("123", "main", false); err == nil {
+	if err := finish("123", "", false); err == nil {
 		t.Fatal("want a refusal")
 	}
 }
@@ -221,7 +266,7 @@ func TestFinishReturnsNothing(t *testing.T) {
 	startOK(t, "123")
 	stdout.Reset()
 
-	if err := finish("123", "main", false); err != nil {
+	if err := finish("123", "", false); err != nil {
 		t.Fatal(err)
 	}
 	if stdout.Len() != 0 {

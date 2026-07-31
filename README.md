@@ -52,15 +52,15 @@ task, commenting on it and closing it are `amenbo task …`, run from the main r
 is the whole division of labour — amenbo owns the task's state, the plugin owns the
 checkout.
 
+Without `--base`, both commands answer with the branch the repository is standing on: a
+worktree is cut from it, and a branch is torn down only once it has reached it. Nothing
+has to be filled in first, and no repository is asked what its trunk is called. `--base`
+names another one — for taking a task's work into a release branch, say, and tearing the
+worktree down against that.
+
 ### Settings
 
-| key | what it does |
-|---|---|
-| `base` | The branch a worktree is cut from when `--base` is not given. Defaults to `main`. |
-
-```sh
-amenbo plugin config set worktree base develop
-```
+This plugin declares none.
 
 ## Install
 
@@ -109,10 +109,10 @@ rests on keeping them apart:
   discards it and reports a failed call.
 
 The stdin document is smaller on this face — no event fired — and carries the plugin's
-own non-secret settings:
+own non-secret settings, which for this one is an empty object since it declares none:
 
 ```json
-{ "v": 1, "config": { "base": "main" } }
+{ "v": 1, "config": {} }
 ```
 
 **`v` is the contract version**, and it is first on the wire. New fields are added
