@@ -126,7 +126,7 @@ A single static Go binary, no runtime and no dependencies beyond `git`:
 
 ```sh
 make build     # → ./worktree
-make test      # gofmt, go vet, go test
+make test      # gofmt, go vet, go test — the same gate CI runs
 ```
 
 To try a build before there is a release to install from, hand-install it into a
