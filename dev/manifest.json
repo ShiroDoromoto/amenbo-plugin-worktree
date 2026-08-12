@@ -7,20 +7,20 @@
   "category": "workflow",
   "assets": {
     "macos": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v3/worktree-v3-macos-universal.tar.gz",
-      "checksum": "sha256:7336210a8e65bad9a95da74c9507ae2a483ed39a440d23d5b9fa43fb8cc78892"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v4/worktree-v4-macos-universal.tar.gz",
+      "checksum": "sha256:f66ef1d8f2e58517430f8868b7e72c0214c1ae39247410c9536e3cd1395c1162"
     },
     "linux-x64": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v3/worktree-v3-linux-x64.tar.gz",
-      "checksum": "sha256:21eba8722b09ff637433de60497609e45266de710bc19103cc0365e98fe4bf26"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v4/worktree-v4-linux-x64.tar.gz",
+      "checksum": "sha256:32924dfc1fb65509054a68e328b401389fea3784deaf4b537ee3b9ce39b74988"
     },
     "linux-arm64": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v3/worktree-v3-linux-arm64.tar.gz",
-      "checksum": "sha256:56548a3f5a1211eef50afa341092936c04404bab6968ea3748904cdd66f39a57"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v4/worktree-v4-linux-arm64.tar.gz",
+      "checksum": "sha256:06902f67df17c4c5de6dd7ce3b6d69f3f9d11cd3fd157431bd5164e62b72db1e"
     },
     "windows-x64": {
-      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v3/worktree-v3-windows-x64.tar.gz",
-      "checksum": "sha256:bc90139cff8bd5d7e60a5209d1e9120fb64761f94b61b8e63201e0466f6f13a7"
+      "url": "https://github.com/ShiroDoromoto/amenbo-plugin-worktree/releases/download/v4/worktree-v4-windows-x64.tar.gz",
+      "checksum": "sha256:4420cb5c5b0a95de1f6409d48bf7ec03571510c3b00ae49c6d58f65d8390714b"
     }
   },
   "payload_v": 1,
