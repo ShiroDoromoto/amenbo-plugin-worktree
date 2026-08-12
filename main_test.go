@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -29,7 +30,27 @@ func setupRepo(t *testing.T) string {
 		}
 	}
 	chdir(t, root)
+	// The read-back path runs the real binary, and a test must not depend on the store of
+	// whoever is running it. A task that names no folder is what nearly every test is about,
+	// so it is the answer the fixture stands in with; the ones that are about a place say so.
+	amenboAnswers(t, `{"at":null}`, nil)
 	return root
+}
+
+// amenboAnswers stands in for the amenbo binary for the duration of the test, so a read-back
+// returns raw (or fails with err) instead of launching anything.
+func amenboAnswers(t *testing.T, raw string, err error) {
+	t.Helper()
+	previous := runAmenbo
+	runAmenbo = func(...string) ([]byte, error) { return []byte(raw), err }
+	t.Cleanup(func() { runAmenbo = previous })
+}
+
+// taskWorkedIn is the same stand-in for the case these tests are about: a task that names
+// the folder it is worked in.
+func taskWorkedIn(t *testing.T, dir string) {
+	t.Helper()
+	amenboAnswers(t, fmt.Sprintf(`{"at":{"binding_id":1,"dir":%q}}`, dir), nil)
 }
 
 // chdir moves into dir for the duration of the test and back afterwards.

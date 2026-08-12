@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -84,6 +85,104 @@ func TestStartRefusesWhenTheBranchSurvivedTheWorktree(t *testing.T) {
 	err := start("123", "")
 	if err == nil || !strings.Contains(err.Error(), "task/123") {
 		t.Fatalf("start = %v — want a refusal naming the branch", err)
+	}
+}
+
+// A worktree takes its identity from where the command was typed, so the same start typed
+// in the wrong repository succeeds and hands back a checkout of a different project. Where
+// the task names the folder it is worked in, there is an answer to hold it to.
+func TestStartRefusesARepositoryTheTaskIsNotWorkedIn(t *testing.T) {
+	setupRepo(t)
+	stdout, _ := capture(t)
+	other := t.TempDir()
+	if _, err := git(other, "init", "-b", "main"); err != nil {
+		t.Fatal(err)
+	}
+	taskWorkedIn(t, other)
+
+	err := start("123", "")
+	if err == nil {
+		t.Fatal("a start in a repository the task is not worked in should refuse")
+	}
+	if !strings.Contains(err.Error(), other) {
+		t.Errorf("the refusal should name the folder to start in: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("a refused start returns nothing, stdout = %q", stdout)
+	}
+	_, _, worktree, err := paths("123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(worktree); !os.IsNotExist(err) {
+		t.Errorf("a refused start creates nothing, stat err = %v", err)
+	}
+}
+
+// The folder a task names is one its project is bound to, which need not be the repository
+// root — so what is compared is the repository the folder lies in, not the folder itself.
+func TestStartCutsWhereTheTaskNamesAFolderOfThisRepository(t *testing.T) {
+	root := setupRepo(t)
+	capture(t)
+	inside := filepath.Join(root, "docs")
+	if err := os.MkdirAll(inside, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	taskWorkedIn(t, inside)
+
+	if err := start("123", ""); err != nil {
+		t.Fatalf("start where the task is worked: %v", err)
+	}
+	if !branchExists(root, "task/123") {
+		t.Error("the branch should exist")
+	}
+}
+
+// What cannot be compared refuses nothing. A place amenbo could not be asked about, and one
+// lying in no repository, each leave nothing to hold the start to — and of the two failures,
+// being unable to cut a worktree is the worse — so it is cut, and the reason is on stderr.
+func TestStartCutsOnAPlaceItCannotCompare(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		stand func(t *testing.T)
+	}{
+		{"the read fails", func(t *testing.T) { amenboAnswers(t, "", errors.New("no amenbo on the PATH")) }},
+		{"the folder is in no repository", func(t *testing.T) { taskWorkedIn(t, t.TempDir()) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := setupRepo(t)
+			_, stderr := capture(t)
+			tc.stand(t)
+
+			if err := start("123", ""); err != nil {
+				t.Fatalf("start: %v", err)
+			}
+			if !branchExists(root, "task/123") {
+				t.Error("the worktree should have been cut anyway")
+			}
+			if !strings.Contains(stderr.String(), "cutting here") {
+				t.Errorf("the check it could not make should be said: %q", stderr)
+			}
+		})
+	}
+}
+
+// Only the cut is held to the task's folder. A teardown takes away a worktree that is
+// already there, and there is no second repository it could have meant.
+func TestFinishIsNotHeldToTheFolderTheTaskNames(t *testing.T) {
+	root := setupRepo(t)
+	capture(t)
+	worktree := startOK(t, "123")
+	taskWorkedIn(t, t.TempDir())
+
+	if err := finish("123", "", false); err != nil {
+		t.Fatalf("finish: %v", err)
+	}
+	if _, err := os.Stat(worktree); !os.IsNotExist(err) {
+		t.Errorf("%s should be gone, stat err = %v", worktree, err)
+	}
+	if branchExists(root, "task/123") {
+		t.Error("the branch should be gone")
 	}
 }
 

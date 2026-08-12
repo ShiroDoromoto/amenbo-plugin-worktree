@@ -13,7 +13,8 @@ about it can be mistaken for part of the project.
 
 This is also the **reference implementation** of the amenbo plugin contract. It is
 deliberately small, and it exercises the parts an author has to get right: both plugin
-faces, the payload on stdin, and the split between the return value and the diagnostics.
+faces, the payload on stdin, the split between the return value and the diagnostics, and
+the call back into amenbo that turns an id into the record behind it.
 
 ## Use
 
@@ -46,10 +47,18 @@ iex (amenbo plugin run worktree start 123)
 | `start <id> [--base <branch>]` | Add a worktree for the task on a fresh branch `task/<id>`, and return the `cd` into it. |
 | `finish <id> [--base <branch>] [--force]` | Remove that worktree and its branch. Refused while the worktree is dirty or the branch has commits `<branch>` does not; `--force` overrides both. |
 
-**The backlog stays with amenbo.** This plugin touches git and nothing else: reserving a
+**A task can name the folder it is worked in, and `start` is held to it.** Where that
+folder lies in another repository, no worktree is cut and the refusal says where to type
+the command instead. A checkout takes its contents from the repository the command was
+typed in and never from the task, so the wrong repository does not fail — it succeeds, and
+hands back a checkout of a different project. Only that plain contradiction is refused: a
+task naming no folder and a place that cannot be read are both left alone, and so is
+`finish`, which takes away a worktree that is already there.
+
+**The backlog stays with amenbo.** This plugin writes git and nothing else: reserving a
 task, commenting on it and closing it are `amenbo task …`, run from the main repo. That
 is the whole division of labour — amenbo owns the task's state, the plugin owns the
-checkout.
+checkout, and what the plugin asks of the task it asks by reading.
 
 Without `--base`, both commands answer with the branch the repository is standing on: a
 worktree is cut from it, and a branch is torn down only once it has reached it. Nothing
@@ -118,6 +127,15 @@ own non-secret settings, which for this one is an empty object since it declares
 silently, so a plugin ignores what it does not recognise; `v` moves only when an existing
 field's meaning breaks. That is why the hook here refuses to act on any other version
 rather than guessing — see [`main.go`](main.go).
+
+**A payload names a record; reading it is a call back into amenbo.** The document carries
+an id and a kind and nothing of the record itself, so a plugin that needs the content runs
+`amenbo task show <id> --json` the way any other caller would — there is no second protocol
+and no library to link, a plugin being any executable. Nothing has to be found first:
+amenbo hands the plugin the store to open and the window to read it through in the
+environment when it launches it, since a plugin's working directory is wherever its
+launcher happened to be standing and no binding of its own sits beneath it. That is how
+`start` learns which folder a task is worked in — see [`amenbo.go`](amenbo.go).
 
 ## Build
 

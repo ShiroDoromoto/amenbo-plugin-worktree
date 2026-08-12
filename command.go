@@ -53,6 +53,9 @@ func start(id, base string) error {
 	if err != nil {
 		return err
 	}
+	if err := elsewhere(id, root); err != nil {
+		return err
+	}
 	// Settled before anything is created: the way in is the whole return value, and a
 	// checkout on disk that no returned line can enter is worse than a refusal.
 	cd, err := shellQuote(worktree)
@@ -78,6 +81,48 @@ func start(id, base string) error {
 	logf("  backlog moves (comment / done) stay with amenbo, run from %s", root)
 	fmt.Fprintf(out, "cd %s\n", cd)
 	return nil
+}
+
+// elsewhere refuses a start typed in a repository the task is not worked in.
+//
+// A worktree takes its whole identity from where the command was typed: paths derives it
+// from the current directory and never consults the task, so the same start typed in the
+// wrong repository succeeds and hands back a checkout of a different project. A project
+// whose work is spread over several repositories is where that happens, and it is also
+// where amenbo holds the answer — a task can name the folder it is worked in.
+//
+// Everything short of a plain contradiction passes through. A task naming no folder claims
+// nothing, and a place that cannot be read, or that lies in no repository, leaves nothing
+// to compare: being unable to cut a worktree is the worse failure of the two, so only a
+// place naming another repository outright is refused. The teardown is not held to any of
+// this — finish takes away a worktree that is already there, and where it stands is not in
+// question.
+func elsewhere(id, root string) error {
+	dir, err := taskFolder(id)
+	if err != nil {
+		logf("worktree: cutting here — the folder task %s is worked in could not be read (%v)", id, err)
+		return nil
+	}
+	if dir == "" {
+		return nil
+	}
+	home, err := gitRoot(dir)
+	if err != nil {
+		logf("worktree: cutting here — task %s is worked in %s, which is in no repository (%v)", id, dir, err)
+		return nil
+	}
+	// Both sides are git's own answer for their directory, so one repository reached by two
+	// spellings — a symlink, a path leading through a linked worktree — resolves to one string.
+	if filepath.Clean(home) == filepath.Clean(root) {
+		return nil
+	}
+	return fmt.Errorf(`task %s is worked in %s, and this is %s.
+
+  A worktree is cut from the repository the command is typed in, never from the task, so
+  one cut here would be a checkout of the wrong project. Start it where the task is:
+
+  cd %s
+  eval "$(amenbo plugin run worktree start %s)"`, id, dir, root, dir, id)
 }
 
 // existingWorktree is the refusal a second start meets, and it is written to be read by

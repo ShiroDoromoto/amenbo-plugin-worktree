@@ -19,10 +19,10 @@
 // has no bound amenbo folder in its ancestry, so amenbo commands run there cannot
 // reach the real backlog and cannot be confused for backlog moves.
 //
-// This plugin touches git and nothing else. Reserving a task, commenting on it and
-// closing it are amenbo's, run from the main repo — which is also where these commands
-// must be invoked, since that is where amenbo finds the project the plugin is enabled
-// for.
+// What this plugin writes is git, and only git. It does read a task back from amenbo, to
+// see which folder that task is worked in, but reserving one, commenting on it and closing
+// it are amenbo's, run from the main repo — which is also where these commands must be
+// invoked, since that is where amenbo finds the project the plugin is enabled for.
 package main
 
 import (
@@ -225,5 +225,6 @@ With no arguments the plugin is an observation hook: it reads the fired event on
 and only writes a suggestion to stderr. It never creates or removes anything on its own.
 
 The backlog is amenbo's: reserve with 'amenbo task status <id> in_progress', close with
-'amenbo task done <id>'. This plugin only touches git.`)
+'amenbo task done <id>'. This plugin reads a task to see where it is worked, and writes
+nothing but git.`)
 }
