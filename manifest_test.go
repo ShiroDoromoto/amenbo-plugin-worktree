@@ -9,14 +9,8 @@ import (
 )
 
 // The manifest as this test asks about it — the fields that have to agree with the code and
-// the build beside them, not the whole schema the catalog validates.
-//
-// `dev/manifest.json` is the hand-install stand-in for the catalog entry, written to carry the
-// same fields so the two can be read against each other. That is only true while something
-// checks it: the entry is a pull request somebody reviews, and this file is a copy nobody
-// opens between releases. So the halves of it that follow from code or from the build are
-// asked about here, and what is left for the release procedure is the one thing no test can
-// see — whether the release it quotes is the newest one.
+// the build beside them, not the whole schema the catalog validates. What no test here can
+// see is whether the release it quotes is the newest one; that is the release procedure's.
 type manifest struct {
 	Name     string           `json:"name"`
 	Repo     string           `json:"repo"`
