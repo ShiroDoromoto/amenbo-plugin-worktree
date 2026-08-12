@@ -12,9 +12,8 @@ about it can be mistaken for part of the project.
 ```
 
 This is also the **reference implementation** of the amenbo plugin contract. It is
-deliberately small, and it exercises everything an author has to get right: both plugin
-faces, the payload on stdin, a declared setting, and the split between the return value
-and the diagnostics.
+deliberately small, and it exercises the parts an author has to get right: both plugin
+faces, the payload on stdin, and the split between the return value and the diagnostics.
 
 ## Use
 
