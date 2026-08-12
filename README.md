@@ -143,6 +143,11 @@ the two can be read against each other — but nothing about a hand-install is v
 The real install route resolves the catalog entry and checks the asset's provenance
 before anything lands on disk.
 
+The one field it leaves to the catalog is `about`, the long description a plugin's detail
+view draws. That view is fed by the document the catalog bakes, in every language the
+entry was translated into; nothing in a hand-install reaches it, so a copy here would only
+be a second one to keep in step.
+
 ### Releases
 
 The distributables are baked in CI, not on a machine: pushing a `v*` tag runs
