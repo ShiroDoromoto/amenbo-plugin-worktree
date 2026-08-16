@@ -72,13 +72,13 @@ func branchExists(root, branch string) bool {
 	return err == nil
 }
 
-// branchDelete deletes branch. force allows deleting one that is not merged.
-func branchDelete(root, branch string, force bool) error {
-	flag := "-d"
-	if force {
-		flag = "-D"
-	}
-	_, err := git(root, "branch", flag, branch)
+// branchDelete deletes branch without asking git whether anything is lost by it. Reaching
+// a delete at all means that question is already settled — either isMerged found the
+// branch's changes in base, or the caller said to discard them on purpose — and git's own
+// answer is the weaker of the two: it measures lineage, so it refuses a branch whose
+// changes were squashed or rebased into base as readily as one that was never merged.
+func branchDelete(root, branch string) error {
+	_, err := git(root, "branch", "-D", branch)
 	return err
 }
 
@@ -91,10 +91,27 @@ func isClean(path string) (bool, error) {
 	return status == "", nil
 }
 
-// isMerged reports whether branch is fully contained in base — its tip is an ancestor of
-// base, so deleting it loses nothing. --is-ancestor answers "no" by exiting 1, which is
-// an answer rather than a failure, so anything non-zero reads as not merged.
+// isMerged reports whether every change on branch is already in base, so deleting it loses
+// nothing. The measure is the patch each commit carries rather than where the commit sits
+// in the graph, because a plugin is a distributable and the way its users merge is not its
+// to choose: a squash and a rebase merge both land the branch's changes under commits of
+// their own, and lineage would call those unmerged forever, leaving --force as the only way
+// to tear a finished task down. `git cherry` marks a commit `-` when base already holds an
+// equivalent patch and `+` when it does not, and leaves merge commits out of the comparison,
+// so a branch that took base in along the way is not measured against what it took.
+//
+// A patch that changed on its way in — a conflict resolved by hand — has no equivalent to
+// find, and the answer falls on the refusing side. That is the safe way to be wrong: the
+// work is untouched, and saying so deliberately is what --force is for.
 func isMerged(root, branch, base string) bool {
-	_, err := git(root, "merge-base", "--is-ancestor", branch, base)
-	return err == nil
+	cherry, err := git(root, "cherry", base, branch)
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(cherry, "\n") {
+		if strings.HasPrefix(line, "+") {
+			return false
+		}
+	}
+	return true
 }

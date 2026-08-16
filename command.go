@@ -143,10 +143,10 @@ func existingWorktree(id, worktree string) error {
 
 // finish takes the worktree and its branch away again.
 //
-// It refuses while there is anything left to lose: uncommitted work in the checkout, or
-// a branch whose commits have not reached base. --force overrides both, which is the
-// only way to discard work on purpose. There is no return value — a teardown answers
-// nothing — so stdout stays empty and the account of what happened is on stderr.
+// It refuses while there is anything left to lose: uncommitted work in the checkout, or a
+// branch carrying changes base does not have. --force overrides both, which is the only
+// way to discard work on purpose. There is no return value — a teardown answers nothing —
+// so stdout stays empty and the account of what happened is on stderr.
 func finish(id, base string, force bool) error {
 	root, worktreeBase, worktree, err := paths(id)
 	if err != nil {
@@ -166,14 +166,14 @@ func finish(id, base string, force bool) error {
 		}
 		into := cutFrom(root, base)
 		if !isMerged(root, branchName(id), into) {
-			return fmt.Errorf("branch %s has commits %s does not — merge it, or use --force to discard them", branchName(id), into)
+			return fmt.Errorf("branch %s carries changes %s does not have — merge it, or use --force to discard them", branchName(id), into)
 		}
 	}
 
 	if err := worktreeRemove(root, worktree, force); err != nil {
 		return fmt.Errorf("worktree remove: %w", err)
 	}
-	if err := branchDelete(root, branchName(id), force); err != nil {
+	if err := branchDelete(root, branchName(id)); err != nil {
 		return fmt.Errorf("branch delete: %w", err)
 	}
 	// `git worktree remove` deletes the dir, but a leftover is swept anyway, and the

@@ -326,6 +326,78 @@ func TestFinishRefusesABranchThatIsNotMergedYet(t *testing.T) {
 	}
 }
 
+// A plugin is a distributable and the way its users merge is not its to choose. A squash and
+// a rebase merge both land the branch's changes under commits of their own, which lineage
+// calls unmerged forever — leaving --force, and the discarding it also does, as the only way
+// to tear a finished task down.
+func TestFinishTearsDownABranchWhoseChangesLandedUnderOtherCommits(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		take func(t *testing.T, root string)
+	}{
+		{"squashed", func(t *testing.T, root string) {
+			mustGit(t, root, "merge", "--squash", "task/123")
+			mustGit(t, root, "commit", "-m", "the work, squashed in")
+		}},
+		{"rebased", func(t *testing.T, root string) {
+			mustGit(t, root, "cherry-pick", "task/123")
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := setupRepo(t)
+			capture(t)
+			worktree := startOK(t, "123")
+			commitFile(t, worktree, "work.txt", "the work")
+			tc.take(t, root)
+
+			if err := finish("123", "", false); err != nil {
+				t.Fatalf("finish after a %s merge: %v", tc.name, err)
+			}
+			if branchExists(root, "task/123") {
+				t.Error("the branch should be gone")
+			}
+		})
+	}
+}
+
+// Measuring the patch is not a blanket yes: work done after the merge is a change base does
+// not have, and it is refused as readily as a branch nobody merged at all.
+func TestFinishRefusesWorkDoneAfterTheSquashMerge(t *testing.T) {
+	root := setupRepo(t)
+	capture(t)
+	worktree := startOK(t, "123")
+	commitFile(t, worktree, "work.txt", "the work")
+	mustGit(t, root, "merge", "--squash", "task/123")
+	mustGit(t, root, "commit", "-m", "the work, squashed in")
+
+	commitFile(t, worktree, "more.txt", "an afterthought")
+
+	err := finish("123", "", false)
+	if err == nil || !strings.Contains(err.Error(), "task/123") {
+		t.Fatalf("finish = %v — want a refusal naming the branch", err)
+	}
+}
+
+// A branch that took base in along the way carries base's own commits beside its work, and
+// the merge that brought them in is not measured — only what the branch itself changed.
+func TestFinishTearsDownABranchThatTookBaseInAlongTheWay(t *testing.T) {
+	root := setupRepo(t)
+	capture(t)
+	worktree := startOK(t, "123")
+	commitFile(t, worktree, "work.txt", "the work")
+	commitFile(t, root, "trunk.txt", "main moved on")
+	mustGit(t, worktree, "merge", "main", "-m", "keep up with main")
+	mustGit(t, root, "merge", "--squash", "task/123")
+	mustGit(t, root, "commit", "-m", "the work, squashed in")
+
+	if err := finish("123", "", false); err != nil {
+		t.Fatalf("finish: %v", err)
+	}
+	if branchExists(root, "task/123") {
+		t.Error("the branch should be gone")
+	}
+}
+
 // --force is the one way to discard work on purpose, and it discards both refusals.
 func TestFinishForceTearsDownDirtyAndUnmerged(t *testing.T) {
 	root := setupRepo(t)

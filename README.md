@@ -45,7 +45,7 @@ iex (amenbo plugin run worktree start 123)
 | | |
 |---|---|
 | `start <id> [--base <branch>]` | Add a worktree for the task on a fresh branch `task/<id>`, and return the `cd` into it. |
-| `finish <id> [--base <branch>] [--force]` | Remove that worktree and its branch. Refused while the worktree is dirty or the branch has commits `<branch>` does not; `--force` overrides both. |
+| `finish <id> [--base <branch>] [--force]` | Remove that worktree and its branch. Refused while the worktree is dirty or the branch carries changes `<branch>` does not have; `--force` overrides both. |
 
 **A task can name the folder it is worked in, and `start` is held to it.** Where that
 folder lies in another repository, no worktree is cut and the refusal says where to type
@@ -65,6 +65,17 @@ worktree is cut from it, and a branch is torn down only once it has reached it. 
 has to be filled in first, and no repository is asked what its trunk is called. `--base`
 names another one — for taking a task's work into a release branch, say, and tearing the
 worktree down against that.
+
+**What has reached base is measured as a change, not as a commit.** A branch is torn down
+once every patch on it has an equivalent in base, which is what `git cherry` answers — so a
+squash or a rebase merge, landing the branch's changes under commits of its own, reads as
+merged just as a plain merge does. How a repository merges is not a plugin's to choose, and
+the graph would call those branches unmerged forever, leaving `--force` — and the
+uncommitted work it discards along the way — as the only way to tear a finished task down.
+Since git's own delete measures the graph, it is not asked either; this check is the one
+that decides. A patch that changed on its way in — a conflict resolved by hand — has no
+equivalent to find and is refused, which is the safe way to be wrong: `git diff
+<branch>...task/<id>` says what differs, and `--force` says it can go.
 
 ### Settings
 

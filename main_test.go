@@ -37,6 +37,25 @@ func setupRepo(t *testing.T) string {
 	return root
 }
 
+// mustGit runs one git command in dir and fails the test if git refuses it.
+func mustGit(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	if _, err := git(dir, args...); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// commitFile writes a file in dir and commits it. A teardown measured by patch id compares
+// what a commit changed, so a test about it needs commits that change something.
+func commitFile(t *testing.T, dir, name, content string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	mustGit(t, dir, "add", name)
+	mustGit(t, dir, "commit", "-m", "add "+name)
+}
+
 // amenboAnswers stands in for the amenbo binary for the duration of the test, so a read-back
 // returns raw (or fails with err) instead of launching anything.
 func amenboAnswers(t *testing.T, raw string, err error) {
