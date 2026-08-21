@@ -138,7 +138,7 @@ func TestStartCutsWhereTheTaskNamesAFolderOfThisRepository(t *testing.T) {
 	}
 }
 
-// What cannot be compared refuses nothing. A place amenbo could not be asked about, and one
+// What cannot be compared refuses nothing. A place Amenbo could not be asked about, and one
 // lying in no repository, each leave nothing to hold the start to — and of the two failures,
 // being unable to cut a worktree is the worse — so it is cut, and the reason is on stderr.
 func TestStartCutsOnAPlaceItCannotCompare(t *testing.T) {

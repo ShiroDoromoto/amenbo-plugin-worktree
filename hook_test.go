@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// reservation is the event amenbo fires when a task is reserved.
+// reservation is the event Amenbo fires when a task is reserved.
 func reservation(id int64) input {
 	return input{V: contractVersion, Event: eventStatusChanged, ID: id, New: statusInProgress}
 }

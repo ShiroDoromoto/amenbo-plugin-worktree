@@ -1,14 +1,14 @@
-// Command worktree is amenbo's official worktree plugin: it gives each task its own
+// Command worktree is Amenbo's official worktree plugin: it gives each task its own
 // git worktree, and takes it away again. It is also the reference implementation of
-// the amenbo plugin contract, so it deliberately exercises both faces a plugin has.
+// the Amenbo plugin contract, so it deliberately exercises both faces a plugin has.
 //
-//   - The observation face. amenbo fires the plugin with NO arguments and the event's
+//   - The observation face. Amenbo fires the plugin with NO arguments and the event's
 //     JSON on stdin. Nobody is waiting for it, so it only ever ADVISES: it writes a
 //     suggestion to stderr and touches nothing. A hook that made worktrees by itself
 //     would be a side effect nobody asked for, on a write path that cannot veto it.
 //   - The command face. A person or an AI invokes it on purpose
 //     (`amenbo plugin run worktree start 123`) and waits for an answer. Arguments
-//     arrive on argv; stdout is the machine return value amenbo relays back verbatim;
+//     arrive on argv; stdout is the machine return value Amenbo relays back verbatim;
 //     stderr is the human diagnostics; the exit code is the verdict.
 //
 // A task's worktree lives OUTSIDE the repo, in a sibling dir:
@@ -16,13 +16,13 @@
 //	<repo>/../<repo-name>-worktrees/<id>/   git worktree checkout on task/<id>
 //
 // Outside-the-repo is deliberate: the checkout is a pure development environment. It
-// has no bound amenbo folder in its ancestry, so amenbo commands run there cannot
+// has no bound Amenbo folder in its ancestry, so Amenbo commands run there cannot
 // reach the real backlog and cannot be confused for backlog moves.
 //
-// What this plugin writes is git, and only git. It does read a task back from amenbo, to
+// What this plugin writes is git, and only git. It does read a task back from Amenbo, to
 // see which folder that task is worked in, but reserving one, commenting on it and closing
-// it are amenbo's, run from the main repo — which is also where these commands must be
-// invoked, since that is where amenbo finds the project the plugin is enabled for.
+// it are Amenbo's, run from the main repo — which is also where these commands must be
+// invoked, since that is where Amenbo finds the project the plugin is enabled for.
 package main
 
 import (
@@ -35,7 +35,7 @@ import (
 	"strings"
 )
 
-// contractVersion is the payload contract this plugin reads. amenbo leads every
+// contractVersion is the payload contract this plugin reads. Amenbo leads every
 // document it writes with `v` and raises it only on a breaking change — new fields are
 // added silently — so a document announcing a different version is one this plugin must
 // not guess at.
@@ -55,10 +55,10 @@ func logf(format string, a ...any) {
 	fmt.Fprintf(errOut, format+"\n", a...)
 }
 
-// input is the JSON document amenbo writes to the plugin's stdin. Both faces receive
+// input is the JSON document Amenbo writes to the plugin's stdin. Both faces receive
 // one, and they overlap: `v` and `config` are always there, while the event fields are
 // filled in only when an event fired. Unknown keys are ignored — the contract grows by
-// addition, so a plugin that refused them would break on the next amenbo.
+// addition, so a plugin that refused them would break on the next Amenbo.
 type input struct {
 	// V is the contract version the document is written to.
 	V int `json:"v"`
@@ -71,16 +71,16 @@ type input struct {
 	// already say it.
 	New string `json:"new"`
 	// Config holds the plugin's own non-secret settings, as the user filled them in.
-	// Secrets never appear here: amenbo puts those in the environment instead. This
+	// Secrets never appear here: Amenbo puts those in the environment instead. This
 	// plugin declares none, so what arrives is empty — the field is here because the
 	// document always carries it, and a reference implementation should show the shape
-	// amenbo writes rather than only the part it happens to read.
+	// Amenbo writes rather than only the part it happens to read.
 	Config map[string]any `json:"config"`
 }
 
-// readInput reads the document amenbo feeds on stdin.
+// readInput reads the document Amenbo feeds on stdin.
 //
-// amenbo always writes one and closes the pipe, so the read finishes promptly. A hand
+// Amenbo always writes one and closes the pipe, so the read finishes promptly. A hand
 // run from a terminal is fed nothing at all, and waiting for a person to type JSON
 // would hang the plugin on `worktree help` — so an interactive stdin is skipped rather
 // than read. A document that will not parse is reported and dropped: on the hook face
@@ -106,7 +106,7 @@ func main() {
 	in := readInput(os.Stdin)
 	args := os.Args[1:]
 
-	// No arguments is the observation face — amenbo fired us for an event and is not
+	// No arguments is the observation face — Amenbo fired us for an event and is not
 	// waiting. A word means someone invoked us on purpose.
 	if len(args) == 0 {
 		hook(in)
@@ -206,9 +206,9 @@ func canonicalID(id string) (string, error) {
 }
 
 func usage() {
-	logf(`worktree — amenbo's official plugin: one git worktree per task
+	logf(`worktree — Amenbo's official plugin: one git worktree per task
 
-Usage (through amenbo, from the repository the task belongs to):
+Usage (through Amenbo, from the repository the task belongs to):
   eval "$(amenbo plugin run worktree start <id> [--base <branch>])"
   iex (amenbo plugin run worktree start <id> [--base <branch>])      # PowerShell
   amenbo plugin run worktree finish <id> [--base <branch>] [--force]
@@ -224,7 +224,7 @@ standing on. Name one with --base to take the work somewhere else.
 With no arguments the plugin is an observation hook: it reads the fired event on stdin
 and only writes a suggestion to stderr. It never creates or removes anything on its own.
 
-The backlog is amenbo's: reserve with 'amenbo task status <id> in_progress', close with
+The backlog is Amenbo's: reserve with 'amenbo task status <id> in_progress', close with
 'amenbo task done <id>'. This plugin reads a task to see where it is worked, and writes
 nothing but git.`)
 }

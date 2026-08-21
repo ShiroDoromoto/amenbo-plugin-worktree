@@ -66,7 +66,7 @@ func entryKey(platform string) string {
 
 // The subscription and the code have to name the same event. One the manifest names and the
 // hook does not read is a launch with nothing to say; one the hook reads and the manifest does
-// not name is a sentence never reached, since amenbo starts a plugin for what it subscribed to
+// not name is a sentence never reached, since Amenbo starts a plugin for what it subscribed to
 // and nothing else.
 func TestTheManifestSubscribesToTheEventTheHookReads(t *testing.T) {
 	events := readManifest(t).Events
@@ -76,7 +76,7 @@ func TestTheManifestSubscribesToTheEventTheHookReads(t *testing.T) {
 	}
 }
 
-// `payload_v` is the contract amenbo writes its document to, and contractVersion is the one the
+// `payload_v` is the contract Amenbo writes its document to, and contractVersion is the one the
 // plugin reads. A document announcing a version the plugin does not read is dropped where it
 // arrives, so declaring one number and reading another leaves the plugin silent on every event
 // without failing anywhere.
@@ -86,7 +86,7 @@ func TestTheDeclaredPayloadVersionIsTheOneTheCodeReads(t *testing.T) {
 	}
 }
 
-// This plugin asks the user for nothing, and the code says so twice over: the settings amenbo
+// This plugin asks the user for nothing, and the code says so twice over: the settings Amenbo
 // writes into the input document are read by nobody, and no secret is looked up in the
 // environment. A field declared here would draw a form whose answers go nowhere.
 func TestTheManifestDeclaresNoSettings(t *testing.T) {
@@ -111,7 +111,7 @@ func TestEveryPlatformTheBuildBakesIsPublished(t *testing.T) {
 	}
 }
 
-// `os` is what amenbo weighs against the machine before it offers the plugin at all, so it
+// `os` is what Amenbo weighs against the machine before it offers the plugin at all, so it
 // follows from the same list: the operating systems the baked platforms name, in the order
 // they are baked, and no others.
 func TestTheDeclaredOSesAreTheOnesTheBuildBakesFor(t *testing.T) {

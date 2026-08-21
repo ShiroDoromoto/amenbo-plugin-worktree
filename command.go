@@ -13,7 +13,7 @@ func branchName(id string) string { return "task/" + id }
 // paths resolves the main repo root, the sibling dir holding every task's worktree, and
 // this task's worktree inside it. They are derived from the current directory, so the
 // commands must be invoked from the repository the task belongs to — which is also the
-// only place amenbo can find the project this plugin is enabled for.
+// only place Amenbo can find the project this plugin is enabled for.
 func paths(id string) (root, base, worktree string, err error) {
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -46,7 +46,7 @@ func cutFrom(root, flagValue string) string {
 // The return value on stdout is one `cd` line, so the caller enters the checkout with
 // `eval "$(amenbo plugin run worktree start <id>)"` — `iex (amenbo plugin run worktree
 // start <id>)` in PowerShell, the same line either way; everything a human reads goes to
-// stderr beside it. The backlog is not touched: amenbo already moved the task to
+// stderr beside it. The backlog is not touched: Amenbo already moved the task to
 // in_progress — that reservation is what fired the hook that suggested this command.
 func start(id, base string) error {
 	root, worktreeBase, worktree, err := paths(id)
@@ -78,7 +78,7 @@ func start(id, base string) error {
 
 	logf("✓ task %s has a worktree: %s  (branch %s, cut from %s)", id, worktree, branchName(id), from)
 	logf("  code, build and test there — it is a development environment, not a bound folder")
-	logf("  backlog moves (comment / done) stay with amenbo, run from %s", root)
+	logf("  backlog moves (comment / done) stay with Amenbo, run from %s", root)
 	fmt.Fprintf(out, "cd %s\n", cd)
 	return nil
 }
@@ -89,7 +89,7 @@ func start(id, base string) error {
 // from the current directory and never consults the task, so the same start typed in the
 // wrong repository succeeds and hands back a checkout of a different project. A project
 // whose work is spread over several repositories is where that happens, and it is also
-// where amenbo holds the answer — a task can name the folder it is worked in.
+// where Amenbo holds the answer — a task can name the folder it is worked in.
 //
 // Everything short of a plain contradiction passes through. A task naming no folder claims
 // nothing, and a place that cannot be read, or that lies in no repository, leaves nothing
@@ -128,7 +128,7 @@ func elsewhere(id, root string) error {
 // existingWorktree is the refusal a second start meets, and it is written to be read by
 // whoever is about to reach for the dir anyway. The two accidents it can be — another
 // session at work, or one's own leftover — look identical on disk, and this plugin
-// cannot tell them apart: the backlog is amenbo's, and reading it is not a git
+// cannot tell them apart: the backlog is Amenbo's, and reading it is not a git
 // operation. So the refusal names both and points at the one place that settles it.
 func existingWorktree(id, worktree string) error {
 	return fmt.Errorf(`%s already exists for task %s.

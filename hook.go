@@ -13,7 +13,7 @@ const (
 	statusInProgress   = "in_progress"
 )
 
-// hook is the observation face: amenbo fired an event and moved on.
+// hook is the observation face: Amenbo fired an event and moved on.
 //
 // It only ever writes a suggestion to stderr. Creating the worktree here would be a side
 // effect on a write path that cannot refuse it, on a decision this plugin is not in a
@@ -23,7 +23,7 @@ const (
 // at all. Where there is none, the suggestion would be noise, so nothing is written.
 //
 // It never fails. Nobody is waiting on the answer, and a non-zero exit would only put a
-// warning in amenbo's execution log for a run that had nothing to say.
+// warning in Amenbo's execution log for a run that had nothing to say.
 func hook(in input) {
 	if in.V != contractVersion {
 		return

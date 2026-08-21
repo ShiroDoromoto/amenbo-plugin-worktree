@@ -56,7 +56,7 @@ func commitFile(t *testing.T, dir, name, content string) {
 	mustGit(t, dir, "commit", "-m", "add "+name)
 }
 
-// amenboAnswers stands in for the amenbo binary for the duration of the test, so a read-back
+// amenboAnswers stands in for the Amenbo binary for the duration of the test, so a read-back
 // returns raw (or fails with err) instead of launching anything.
 func amenboAnswers(t *testing.T, raw string, err error) {
 	t.Helper()
@@ -97,7 +97,7 @@ func capture(t *testing.T) (stdout, stderr *bytes.Buffer) {
 	return stdout, stderr
 }
 
-// stdinWith writes doc to a temp file and opens it, standing in for the pipe amenbo
+// stdinWith writes doc to a temp file and opens it, standing in for the pipe Amenbo
 // feeds the plugin.
 func stdinWith(t *testing.T, doc string) *os.File {
 	t.Helper()

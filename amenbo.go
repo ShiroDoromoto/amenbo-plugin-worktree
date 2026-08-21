@@ -10,14 +10,14 @@ import (
 
 // amenboCmd is the binary a plugin reads records back with. There is no second protocol
 // and no library to link — a plugin is any executable, so the one route that works in
-// every language is amenbo itself, on the PATH the user already has it on.
+// every language is Amenbo itself, on the PATH the user already has it on.
 const amenboCmd = "amenbo"
 
-// runAmenbo runs one amenbo command and returns its stdout. Indirected so a test can
+// runAmenbo runs one Amenbo command and returns its stdout. Indirected so a test can
 // stand in for the binary rather than read the store of whoever is running the tests.
 //
 // The environment is inherited untouched, and that is the whole of the read-back path:
-// amenbo hands a plugin the store to open and the window to read it through when it
+// Amenbo hands a plugin the store to open and the window to read it through when it
 // launches it, because a plugin can work out neither from where it stands — its working
 // directory is whatever its launcher happened to be in, and no binding of its own sits
 // beneath it.
@@ -38,20 +38,20 @@ var runAmenbo = func(args ...string) ([]byte, error) {
 }
 
 // taskFolder reads back the folder task id is worked in — one of the folders its project
-// is bound to, which is amenbo's answer to a project whose work is spread over several
+// is bound to, which is Amenbo's answer to a project whose work is spread over several
 // repositories. A task states one or it states nothing, and most state nothing, so the
 // empty answer is the ordinary case rather than a failure.
 //
 // The facet is declared because every operation that uses one requires it and never
 // defaults it. It settles nothing else here: the window this read goes through is the one
-// amenbo handed over in the environment, so `ai` is declared, being the narrower of the two.
+// Amenbo handed over in the environment, so `ai` is declared, being the narrower of the two.
 func taskFolder(id string) (string, error) {
 	raw, err := runAmenbo("task", "show", id, "--json", "--actor", "ai")
 	if err != nil {
 		return "", err
 	}
 	// A task naming no folder answers with a null, which leaves the nested struct at its
-	// zero value — the same empty string a task amenbo has never heard of would give, and
+	// zero value — the same empty string a task Amenbo has never heard of would give, and
 	// both mean there is nothing here to hold anyone to.
 	var record struct {
 		At struct {

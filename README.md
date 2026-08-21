@@ -1,28 +1,28 @@
-# worktree — amenbo's official per-task git worktree plugin
+# worktree — Amenbo's official per-task git worktree plugin
 
 Give each task its own git worktree, and take it away again when it is done.
 
 Several implementation sessions can then run at once without stepping on each other:
 one task, one checkout, one branch. The checkout lives **outside** the repository, so
-it is a pure development environment — nothing in it is bound to amenbo, and nothing
+it is a pure development environment — nothing in it is bound to Amenbo, and nothing
 about it can be mistaken for part of the project.
 
 ```
 <repo>/../<repo-name>-worktrees/<id>/    git worktree checkout on task/<id>
 ```
 
-This is also the **reference implementation** of the amenbo plugin contract. It is
+This is also the **reference implementation** of the Amenbo plugin contract. It is
 deliberately small, and it exercises the parts an author has to get right: both plugin
 faces, the payload on stdin, the split between the return value and the diagnostics, and
-the call back into amenbo that turns an id into the record behind it.
+the call back into Amenbo that turns an id into the record behind it.
 
 ## Use
 
-Run these from the repository the task belongs to — the folder amenbo is bound to,
+Run these from the repository the task belongs to — the folder Amenbo is bound to,
 which is where it finds the project this plugin is enabled for.
 
 ```sh
-# reserve the task with amenbo; the hook then suggests the command below
+# reserve the task with Amenbo; the hook then suggests the command below
 amenbo task status 123 in_progress
 
 # enter a worktree of its own
@@ -34,7 +34,7 @@ eval "$(amenbo plugin run worktree start 123)"
 amenbo plugin run worktree finish 123
 ```
 
-`start` returns one `cd` line and amenbo passes it through untouched, so the shell you
+`start` returns one `cd` line and Amenbo passes it through untouched, so the shell you
 are standing in is the one that runs it. The line itself is the same in either dialect;
 only the way to feed it differs:
 
@@ -55,9 +55,9 @@ hands back a checkout of a different project. Only that plain contradiction is r
 task naming no folder and a place that cannot be read are both left alone, and so is
 `finish`, which takes away a worktree that is already there.
 
-**The backlog stays with amenbo.** This plugin writes git and nothing else: reserving a
+**The backlog stays with Amenbo.** This plugin writes git and nothing else: reserving a
 task, commenting on it and closing it are `amenbo task …`, run from the main repo. That
-is the whole division of labour — amenbo owns the task's state, the plugin owns the
+is the whole division of labour — Amenbo owns the task's state, the plugin owns the
 checkout, and what the plugin asks of the task it asks by reading.
 
 Without `--base`, both commands answer with the branch the repository is standing on: a
@@ -93,11 +93,11 @@ is a per-project answer.
 
 ## The contract, as this plugin reads it
 
-A plugin is just an executable. amenbo starts it, writes one JSON document to its stdin,
+A plugin is just an executable. Amenbo starts it, writes one JSON document to its stdin,
 and reads back what it wrote and how it exited. Which of its two faces is being called is
 told by the arguments:
 
-**No arguments — the observation face.** An event fired and amenbo moved on; nobody is
+**No arguments — the observation face.** An event fired and Amenbo moved on; nobody is
 waiting. The document on stdin describes the event:
 
 ```json
@@ -116,7 +116,7 @@ written. See [`hook.go`](hook.go).
 for an answer. Here the three channels each have exactly one job, and the whole contract
 rests on keeping them apart:
 
-- **stdout is the machine return value.** amenbo relays it to the caller verbatim, which
+- **stdout is the machine return value.** Amenbo relays it to the caller verbatim, which
   is why `start` prints one `cd` line and why `eval "$(…)"` works at all. A summary
   leaking into stdout would be evaluated as a shell command. Nothing downstream knows
   which shell will read the line, so it is written in the form both dialects agree on —
@@ -124,7 +124,7 @@ rests on keeping them apart:
   form is one carrying a single quote, and `start` refuses it rather than return a line
   that works on the machine it was baked for and breaks on the other.
 - **stderr is for humans.** Summaries, refusals, context.
-- **the exit code is the verdict.** Non-zero means the return value is broken; amenbo
+- **the exit code is the verdict.** Non-zero means the return value is broken; Amenbo
   discards it and reports a failed call.
 
 The stdin document is smaller on this face — no event fired — and carries the plugin's
@@ -139,11 +139,11 @@ silently, so a plugin ignores what it does not recognise; `v` moves only when an
 field's meaning breaks. That is why the hook here refuses to act on any other version
 rather than guessing — see [`main.go`](main.go).
 
-**A payload names a record; reading it is a call back into amenbo.** The document carries
+**A payload names a record; reading it is a call back into Amenbo.** The document carries
 an id and a kind and nothing of the record itself, so a plugin that needs the content runs
 `amenbo task show <id> --json` the way any other caller would — there is no second protocol
 and no library to link, a plugin being any executable. Nothing has to be found first:
-amenbo hands the plugin the store to open and the window to read it through in the
+Amenbo hands the plugin the store to open and the window to read it through in the
 environment when it launches it, since a plugin's working directory is wherever its
 launcher happened to be standing and no binding of its own sits beneath it. That is how
 `start` learns which folder a task is worked in — see [`amenbo.go`](amenbo.go).
@@ -158,7 +158,7 @@ make test      # gofmt, go vet, go test — the same gate CI runs
 ```
 
 To try a build before there is a release to install from, hand-install it into a
-throwaway amenbo base:
+throwaway Amenbo base:
 
 ```sh
 make install AMENBO_BASE="$AMENBO_HOME"

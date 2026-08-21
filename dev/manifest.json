@@ -1,7 +1,7 @@
 {
   "name": "worktree",
   "desc": "Isolate each task in its own git worktree",
-  "author": "amenbo",
+  "author": "Amenbo",
   "repo": "ShiroDoromoto/amenbo-plugin-worktree",
   "os": ["macos", "linux", "windows"],
   "category": "workflow",
