@@ -78,7 +78,7 @@ func start(id, base string) error {
 
 	logf("✓ task %s has a worktree: %s  (branch %s, cut from %s)", id, worktree, branchName(id), from)
 	logf("  code, build and test there — it is a development environment, not a bound folder")
-	logf("  backlog moves (comment / done) stay with Amenbo, run from %s", root)
+	logf("  task moves (comment / done) stay with Amenbo, run from %s", root)
 	fmt.Fprintf(out, "cd %s\n", cd)
 	return nil
 }
@@ -134,7 +134,7 @@ func existingWorktree(id, worktree string) error {
 	return fmt.Errorf(`%s already exists for task %s.
 
   ANOTHER SESSION MAY BE WORKING THERE. Do not look inside it, do not judge whether it
-  is stale, do not delete it. Ask the backlog first: `+"`amenbo task show %s`"+` — in_progress
+  is stale, do not delete it. Ask Amenbo first: `+"`amenbo task show %s`"+` — in_progress
   means someone is on it, and the answer is to take a different task.
 
   Only if you know the worktree is your own leftover:
@@ -185,7 +185,7 @@ func finish(id, base string, force bool) error {
 	_ = os.Remove(worktreeBase)
 
 	logf("✓ task %s torn down (worktree and branch %s removed)", id, branchName(id))
-	logf("  the backlog is untouched — close the task with `amenbo task done %s`, or hand it back with `amenbo task status %s todo`", id, id)
+	logf("  the task is untouched — close it with `amenbo task done %s`, or hand it back with `amenbo task status %s todo`", id, id)
 	return nil
 }
 

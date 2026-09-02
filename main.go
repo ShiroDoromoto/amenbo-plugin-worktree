@@ -224,7 +224,7 @@ standing on. Name one with --base to take the work somewhere else.
 With no arguments the plugin is an observation hook: it reads the fired event on stdin
 and only writes a suggestion to stderr. It never creates or removes anything on its own.
 
-The backlog is Amenbo's: reserve with 'amenbo task status <id> in_progress', close with
+The task is Amenbo's: reserve with 'amenbo task status <id> in_progress', close with
 'amenbo task done <id>'. This plugin reads a task to see where it is worked, and writes
 nothing but git.`)
 }

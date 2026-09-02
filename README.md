@@ -55,7 +55,7 @@ hands back a checkout of a different project. Only that plain contradiction is r
 task naming no folder and a place that cannot be read are both left alone, and so is
 `finish`, which takes away a worktree that is already there.
 
-**The backlog stays with Amenbo.** This plugin writes git and nothing else: reserving a
+**The task stays with Amenbo.** This plugin writes git and nothing else: reserving a
 task, commenting on it and closing it are `amenbo task …`, run from the main repo. That
 is the whole division of labour — Amenbo owns the task's state, the plugin owns the
 checkout, and what the plugin asks of the task it asks by reading.
